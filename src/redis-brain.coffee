@@ -41,8 +41,10 @@ module.exports = (robot) ->
   robot.brain.setAutoSave false
 
   getData = ->
+    robot.logger.error "getData"
     client.get "#{prefix}:storage", (err, reply) ->
       if err
+        robot.logger.error "getData err", err
         throw err
       else if reply
         robot.logger.info "hubot-redis-brain: Data for #{prefix} brain retrieved from Redis"
@@ -54,6 +56,7 @@ module.exports = (robot) ->
       robot.brain.setAutoSave true
 
   if info.auth
+    robot.logger.error "info.auth", info.auth
     client.auth info.auth.split(":")[1], (err) ->
       if err
         robot.logger.error "hubot-redis-brain: Failed to authenticate to Redis"
@@ -62,6 +65,7 @@ module.exports = (robot) ->
         getData()
 
   client.on "error", (err) ->
+    robot.logger.error "onError", err.message
     if /ECONNREFUSED/.test err.message
 
     else
@@ -72,7 +76,9 @@ module.exports = (robot) ->
     getData() if not info.auth
 
   robot.brain.on 'save', (data = {}) ->
+    robot.logger.error "onSave"
     client.set "#{prefix}:storage", JSON.stringify data
 
   robot.brain.on 'close', ->
+    robot.logger.error "onClose"
     client.quit()
